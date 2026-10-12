@@ -92,3 +92,17 @@ def r_squared(y, yhat):
     y = np.asarray(y, dtype=float)
     yhat = np.asarray(yhat, dtype=float)
     return 1 - np.sum((y - yhat) ** 2) / np.sum((y - y.mean()) ** 2)
+
+def kendall_tau_b(x, y):
+    """Kendall's tau-b: (concordant - discordant) / sqrt((n0 - n1)(n0 - n2)),
+    where n1 and n2 count tied pairs in x and in y."""
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    n = len(x)
+    sx = np.sign(x[:, None] - x[None, :])
+    sy = np.sign(y[:, None] - y[None, :])
+    s = np.sum(sx * sy) / 2                    # concordant minus discordant pairs
+    n0 = n * (n - 1) / 2
+    n1 = (np.sum(sx == 0) - n) / 2             # pairs tied in x
+    n2 = (np.sum(sy == 0) - n) / 2             # pairs tied in y
+    return s / np.sqrt((n0 - n1) * (n0 - n2))
