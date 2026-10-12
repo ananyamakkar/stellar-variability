@@ -52,3 +52,23 @@ def two_regression_lines(x, y):
     a_xy, b_xy = linear_fit(y, x)
     return {"b_yx": b_yx, "b_xy": b_xy, "r2_from_slopes": b_yx * b_xy,
             "r_from_slopes": np.sign(b_yx) * np.sqrt(b_yx * b_xy)}
+
+def average_ranks(x):
+    """Ranks 1..n, with tied values given the average of their ranks."""
+    x = np.asarray(x, dtype=float)
+    order = np.argsort(x, kind="mergesort")
+    sorted_x = x[order]
+    ranks = np.empty(len(x), dtype=float)
+    i = 0
+    while i < len(x):
+        j = i
+        while j + 1 < len(x) and sorted_x[j + 1] == sorted_x[i]:
+            j += 1
+        ranks[order[i:j + 1]] = (i + j) / 2 + 1
+        i = j + 1
+    return ranks
+
+
+def spearman_rho(x, y):
+    """Spearman rank correlation = Pearson r of the (tie-averaged) ranks."""
+    return pearson_r(average_ranks(x), average_ranks(y))
