@@ -72,3 +72,23 @@ def average_ranks(x):
 def spearman_rho(x, y):
     """Spearman rank correlation = Pearson r of the (tie-averaged) ranks."""
     return pearson_r(average_ranks(x), average_ranks(y))
+
+def polynomial_fit(x, y, degree):
+    """Least-squares polynomial via the normal equations (X'X) c = X'y.
+    Returns coefficients [a0, a1, ..., a_degree]."""
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    X = np.vander(x, degree + 1, increasing=True)
+    return np.linalg.solve(X.T @ X, X.T @ y)
+
+
+def poly_predict(coefs, x):
+    x = np.asarray(x, dtype=float)
+    return sum(c * x**k for k, c in enumerate(coefs))
+
+
+def r_squared(y, yhat):
+    """R^2 = 1 - SS_residual / SS_total."""
+    y = np.asarray(y, dtype=float)
+    yhat = np.asarray(yhat, dtype=float)
+    return 1 - np.sum((y - yhat) ** 2) / np.sum((y - y.mean()) ** 2)
