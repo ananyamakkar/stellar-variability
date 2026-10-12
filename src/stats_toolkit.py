@@ -106,3 +106,45 @@ def kendall_tau_b(x, y):
     n1 = (np.sum(sx == 0) - n) / 2             # pairs tied in x
     n2 = (np.sum(sy == 0) - n) / 2             # pairs tied in y
     return s / np.sqrt((n0 - n1) * (n0 - n2))
+
+from scipy import stats as _st
+
+
+def two_sample_t(x, y, equal_var=False, alternative="two-sided"):
+    """Two-sample t-test from the formulas.
+
+    equal_var=False -> Welch (separate variances); True -> pooled variance.
+    alternative: 'two-sided', 'greater' (mean x > mean y), or 'less'.
+    Returns t, df, p. Uses scipy only for the t distribution's tail areas.
+    """
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    n1, n2 = len(x), len(y)
+    m1, m2 = x.mean(), y.mean()
+    v1, v2 = x.var(ddof=1), y.var(ddof=1)
+
+    if equal_var:
+        sp2 = ((n1 - 1) * v1 + (n2 - 1) * v2) / (n1 + n2 - 2)
+        se = np.sqrt(sp2 * (1 / n1 + 1 / n2))
+        df = n1 + n2 - 2
+    else:
+        se = np.sqrt(v1 / n1 + v2 / n2)
+        df = (v1 / n1 + v2 / n2) ** 2 / ((v1 / n1) ** 2 / (n1 - 1) + (v2 / n2) ** 2 / (n2 - 1))
+
+    t = (m1 - m2) / se
+    if alternative == "two-sided":
+        p = 2 * _st.t.sf(abs(t), df)
+    elif alternative == "greater":
+        p = _st.t.sf(t, df)
+    else:
+        p = _st.t.cdf(t, df)
+    return t, df, p
+
+
+def cohens_d(x, y):
+    """Standardized mean difference using the pooled standard deviation."""
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    n1, n2 = len(x), len(y)
+    sp = np.sqrt(((n1 - 1) * x.var(ddof=1) + (n2 - 1) * y.var(ddof=1)) / (n1 + n2 - 2))
+    return (x.mean() - y.mean()) / sp
