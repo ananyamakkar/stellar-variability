@@ -30,3 +30,15 @@ def correlation_summary(x, y):
     lo, hi = np.tanh(z - 1.96 * z_se), np.tanh(z + 1.96 * z_se)
 
     return {"n": n, "r": r, "r2": r**2, "se": se, "pe": pe, "ci95": (lo, hi)}
+
+def linear_fit(x, y):
+    """Least-squares line y = a + b*x from the normal equations.
+
+    b = sum((x - xbar)(y - ybar)) / sum((x - xbar)^2),  a = ybar - b * xbar
+    """
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    dx = x - x.mean()
+    b = np.sum(dx * (y - y.mean())) / np.sum(dx**2)
+    a = y.mean() - b * x.mean()
+    return a, b
