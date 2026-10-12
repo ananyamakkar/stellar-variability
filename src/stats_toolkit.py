@@ -148,3 +148,18 @@ def cohens_d(x, y):
     n1, n2 = len(x), len(y)
     sp = np.sqrt(((n1 - 1) * x.var(ddof=1) + (n2 - 1) * y.var(ddof=1)) / (n1 + n2 - 2))
     return (x.mean() - y.mean()) / sp
+
+def f_test_variances(x, y, alternative="two-sided"):
+    """F-test for equality of two variances: F = s1^2 / s2^2 with (n1-1, n2-1) df.
+    H0: sigma1^2 = sigma2^2."""
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    F = x.var(ddof=1) / y.var(ddof=1)
+    df1, df2 = len(x) - 1, len(y) - 1
+    if alternative == "two-sided":
+        p = min(1.0, 2 * min(_st.f.cdf(F, df1, df2), _st.f.sf(F, df1, df2)))
+    elif alternative == "greater":
+        p = _st.f.sf(F, df1, df2)
+    else:
+        p = _st.f.cdf(F, df1, df2)
+    return F, df1, df2, p
