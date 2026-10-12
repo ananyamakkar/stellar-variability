@@ -193,3 +193,19 @@ def z_test_two_proportions(k1, n1, k2, n2, alternative="two-sided"):
     else:
         p = _st.norm.cdf(z)
     return z, p
+
+def regression_f_test(x, y):
+    """Overall F-test for simple linear regression.
+    SST = SSR + SSE;  F = (SSR / 1) / (SSE / (n - 2)),  df = (1, n - 2)."""
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    n = len(x)
+    a, b = linear_fit(x, y)
+    yhat = a + b * x
+    sst = np.sum((y - y.mean()) ** 2)
+    sse = np.sum((y - yhat) ** 2)
+    ssr = sst - sse
+    F = ssr / (sse / (n - 2))
+    p = _st.f.sf(F, 1, n - 2)
+    return {"SST": sst, "SSR": ssr, "SSE": sse, "n": n,
+            "F": F, "p": p, "R2": ssr / sst}
