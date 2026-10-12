@@ -163,3 +163,33 @@ def f_test_variances(x, y, alternative="two-sided"):
     else:
         p = _st.f.cdf(F, df1, df2)
     return F, df1, df2, p
+
+def z_test_two_means(x, y, alternative="two-sided"):
+    """Large-sample Z-test for two means (sample variances used in place of sigma^2).
+    z = (xbar - ybar) / sqrt(s1^2/n1 + s2^2/n2)."""
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    se = np.sqrt(x.var(ddof=1) / len(x) + y.var(ddof=1) / len(y))
+    z = (x.mean() - y.mean()) / se
+    if alternative == "two-sided":
+        p = 2 * _st.norm.sf(abs(z))
+    elif alternative == "greater":
+        p = _st.norm.sf(z)
+    else:
+        p = _st.norm.cdf(z)
+    return z, p
+
+
+def z_test_two_proportions(k1, n1, k2, n2, alternative="two-sided"):
+    """Two-proportion Z-test with the pooled proportion under H0: p1 = p2."""
+    p1, p2 = k1 / n1, k2 / n2
+    pp = (k1 + k2) / (n1 + n2)
+    se = np.sqrt(pp * (1 - pp) * (1 / n1 + 1 / n2))
+    z = (p1 - p2) / se
+    if alternative == "two-sided":
+        p = 2 * _st.norm.sf(abs(z))
+    elif alternative == "greater":
+        p = _st.norm.sf(z)
+    else:
+        p = _st.norm.cdf(z)
+    return z, p
