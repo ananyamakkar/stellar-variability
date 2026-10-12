@@ -42,3 +42,13 @@ def linear_fit(x, y):
     b = np.sum(dx * (y - y.mean())) / np.sum(dx**2)
     a = y.mean() - b * x.mean()
     return a, b
+
+def two_regression_lines(x, y):
+    """Both regression lines and the link to r.
+
+    b_yx = slope of y on x, b_xy = slope of x on y.  b_yx * b_xy = r^2.
+    """
+    a_yx, b_yx = linear_fit(x, y)
+    a_xy, b_xy = linear_fit(y, x)
+    return {"b_yx": b_yx, "b_xy": b_xy, "r2_from_slopes": b_yx * b_xy,
+            "r_from_slopes": np.sign(b_yx) * np.sqrt(b_yx * b_xy)}
