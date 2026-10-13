@@ -273,3 +273,12 @@ def chi_square_independence(table):
     adj = (O - E) / np.sqrt(E * (1 - row / N) * (1 - col / N))
     return {"chi2": chi2, "df": df, "p": p, "cramers_v": v,
             "min_expected": E.min(), "adj_resid": adj, "N": N}
+
+def chi_square_gof(observed, expected_props):
+    """Chi-square goodness of fit: chi2 = sum((O - E)^2 / E), E = N * expected proportion,
+    df = k - 1."""
+    O = np.asarray(observed, dtype=float)
+    E = O.sum() * np.asarray(expected_props, dtype=float)
+    chi2 = np.sum((O - E) ** 2 / E)
+    df = len(O) - 1
+    return {"chi2": chi2, "df": df, "p": _st.chi2.sf(chi2, df), "min_expected": E.min()}
