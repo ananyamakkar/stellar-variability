@@ -209,3 +209,24 @@ def regression_f_test(x, y):
     p = _st.f.sf(F, 1, n - 2)
     return {"SST": sst, "SSR": ssr, "SSE": sse, "n": n,
             "F": F, "p": p, "R2": ssr / sst}
+
+def one_way_anova(groups):
+    """One-way ANOVA from the formulas. groups: list of 1-D arrays.
+    SST = SSB + SSW;  F = (SSB / (k-1)) / (SSW / (N-k));  eta^2 = SSB / SST."""
+    groups = [np.asarray(g, dtype=float) for g in groups]
+    k = len(groups)
+    n_i = np.array([len(g) for g in groups])
+    N = n_i.sum()
+    grand = np.concatenate(groups).mean()
+    means = np.array([g.mean() for g in groups])
+
+    ssb = np.sum(n_i * (means - grand) ** 2)
+    ssw = sum(np.sum((g - g.mean()) ** 2) for g in groups)
+    df_b, df_w = k - 1, N - k
+    msb, msw = ssb / df_b, ssw / df_w
+    F = msb / msw
+    p = _st.f.sf(F, df_b, df_w)
+    return {"SSB": ssb, "SSW": ssw, "SST": ssb + ssw,
+            "df_between": df_b, "df_within": df_w,
+            "MSB": msb, "MSW": msw, "F": F, "p": p,
+            "eta2": ssb / (ssb + ssw)}
