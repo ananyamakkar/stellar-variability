@@ -295,3 +295,46 @@ def chi_square_single_variance(x, sigma0_sq, alpha=0.05):
     ci = (df * s2 / _st.chi2.ppf(1 - alpha / 2, df),
           df * s2 / _st.chi2.ppf(alpha / 2, df))
     return {"n": n, "s2": s2, "chi2": chi2, "df": df, "p": p, "ci_var": ci}
+
+def _dummies(codes):
+    """Treatment-coded dummy columns (the first level is the reference)."""
+    k = codes.max() + 1
+    D = np.zeros((len(codes), k))
+    D[np.arange(len(codes)), codes] = 1.0
+    return D[:, 1:]
+
+
+def _rss_and_rank(blocks, y):
+    X = np.column_stack([np.ones(len(y))] + blocks)
+    beta = np.linalg.lstsq(X, y, rcond=None)[0]
+    resid = y - X @ beta
+    return float(np.sum(resid ** 2)), int(np.linalg.matrix_rank(X))
+
+
+def two_way_anova(y, a, b):
+    """Two-way ANOVA with interaction for unbalanced data, Type II sums of squares.
+    SS(A) = RSS(B only) - RSS(A + B);  SS(B) = RSS(A only) - RSS(A + B);
+    SS(AxB) = RSS(A + B) - RSS(A + B + AxB);  residual SS = RSS(full model)."""
+    y = np.asarray(y, dtype=float)
+    ca = np.unique(np.asarray(a), return_inverse=True)[1]
+    cb = np.unique(np.asarray(b), return_inverse=True)[1]
+    A, B = _dummies(ca), _dummies(cb)
+    AB = np.column_stack([A[:, i] * B[:, j] for i in range(A.shape[1]) for j in range(B.shape[1])])
+
+    rss_full, r_full = _rss_and_rank([A, B, AB], y)
+    rss_ab, r_ab = _rss_and_rank([A, B], y)
+    rss_a, r_a = _rss_and_rank([A], y)
+    rss_b, r_b = _rss_and_rank([B], y)
+
+    df_res = len(y) - r_full
+    ms_res = rss_full / df_res
+    terms = {"A (class)": (rss_b - rss_ab, r_ab - r_b),
+             "B (brightness)": (rss_a - rss_ab, r_ab - r_a),
+             "A x B": (rss_ab - rss_full, r_full - r_ab)}
+    out = {}
+    for name, (ss, df) in terms.items():
+        F = (ss / df) / ms_res
+        out[name] = {"SS": ss, "df": df, "F": F, "p": _st.f.sf(F, df, df_res),
+                     "partial_eta2": ss / (ss + rss_full)}
+    out["residual"] = {"SS": rss_full, "df": df_res, "F": np.nan, "p": np.nan, "partial_eta2": np.nan}
+    return out
