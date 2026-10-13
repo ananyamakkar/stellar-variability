@@ -338,3 +338,25 @@ def two_way_anova(y, a, b):
                      "partial_eta2": ss / (ss + rss_full)}
     out["residual"] = {"SS": rss_full, "df": df_res, "F": np.nan, "p": np.nan, "partial_eta2": np.nan}
     return out
+
+def fourier_fit(phase, y, order=3):
+    """Least-squares Fourier series from the normal equations:
+    y = a0 + sum_k (a_k cos(2 pi k phase) + b_k sin(2 pi k phase)).
+    Returns [a0, a1, b1, a2, b2, ...]."""
+    phase = np.asarray(phase, dtype=float)
+    y = np.asarray(y, dtype=float)
+    cols = [np.ones_like(phase)]
+    for k in range(1, order + 1):
+        cols += [np.cos(2 * np.pi * k * phase), np.sin(2 * np.pi * k * phase)]
+    X = np.column_stack(cols)
+    return np.linalg.solve(X.T @ X, X.T @ y)
+
+
+def fourier_predict(coefs, phase):
+    phase = np.asarray(phase, dtype=float)
+    out = np.full(phase.shape, float(coefs[0]))
+    order = (len(coefs) - 1) // 2
+    for k in range(1, order + 1):
+        out += coefs[2 * k - 1] * np.cos(2 * np.pi * k * phase)
+        out += coefs[2 * k] * np.sin(2 * np.pi * k * phase)
+    return out
