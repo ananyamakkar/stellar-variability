@@ -282,3 +282,16 @@ def chi_square_gof(observed, expected_props):
     chi2 = np.sum((O - E) ** 2 / E)
     df = len(O) - 1
     return {"chi2": chi2, "df": df, "p": _st.chi2.sf(chi2, df), "min_expected": E.min()}
+
+def chi_square_single_variance(x, sigma0_sq, alpha=0.05):
+    """Chi-square test of H0: sigma^2 = sigma0^2 for one sample.
+    chi2 = (n-1) s^2 / sigma0^2, df = n-1.  Two-sided p-value, plus a (1-alpha) CI for sigma^2."""
+    x = np.asarray(x, dtype=float)
+    n = len(x)
+    s2 = x.var(ddof=1)
+    df = n - 1
+    chi2 = df * s2 / sigma0_sq
+    p = min(1.0, 2 * min(_st.chi2.cdf(chi2, df), _st.chi2.sf(chi2, df)))
+    ci = (df * s2 / _st.chi2.ppf(1 - alpha / 2, df),
+          df * s2 / _st.chi2.ppf(alpha / 2, df))
+    return {"n": n, "s2": s2, "chi2": chi2, "df": df, "p": p, "ci_var": ci}
