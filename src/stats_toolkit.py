@@ -254,3 +254,22 @@ def games_howell(groups, names):
         rows.append({"group_i": names[i], "group_j": names[j],
                      "diff": diff, "t": t, "df": df, "q": q, "p": p})
     return rows
+
+def chi_square_independence(table):
+    """Chi-square test of independence on a contingency table of counts.
+    E = row_total * col_total / N;  chi2 = sum((O - E)^2 / E);  df = (r-1)(c-1).
+    Cramer's V = sqrt(chi2 / (N * (min(r, c) - 1))).
+    Adjusted residual = (O - E) / sqrt(E * (1 - row/N) * (1 - col/N))."""
+    O = np.asarray(table, dtype=float)
+    N = O.sum()
+    row = O.sum(axis=1, keepdims=True)
+    col = O.sum(axis=0, keepdims=True)
+    E = row @ col / N
+    chi2 = np.sum((O - E) ** 2 / E)
+    r, k = O.shape
+    df = (r - 1) * (k - 1)
+    p = _st.chi2.sf(chi2, df)
+    v = np.sqrt(chi2 / (N * (min(r, k) - 1)))
+    adj = (O - E) / np.sqrt(E * (1 - row / N) * (1 - col / N))
+    return {"chi2": chi2, "df": df, "p": p, "cramers_v": v,
+            "min_expected": E.min(), "adj_resid": adj, "N": N}
