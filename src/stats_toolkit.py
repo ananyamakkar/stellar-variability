@@ -230,3 +230,27 @@ def one_way_anova(groups):
             "df_between": df_b, "df_within": df_w,
             "MSB": msb, "MSW": msw, "F": F, "p": p,
             "eta2": ssb / (ssb + ssw)}
+
+from itertools import combinations
+
+
+def games_howell(groups, names):
+    """Games-Howell pairwise comparisons (no equal-variance assumption).
+    For each pair: t = (m_i - m_j) / sqrt(s_i^2/n_i + s_j^2/n_j), Welch-Satterthwaite df,
+    q = sqrt(2) * |t|, p from the studentized range distribution with k groups."""
+    k = len(groups)
+    rows = []
+    for i, j in combinations(range(k), 2):
+        gi = np.asarray(groups[i], dtype=float)
+        gj = np.asarray(groups[j], dtype=float)
+        ni, nj = len(gi), len(gj)
+        vi, vj = gi.var(ddof=1), gj.var(ddof=1)
+        diff = gi.mean() - gj.mean()
+        se2 = vi / ni + vj / nj
+        t = diff / np.sqrt(se2)
+        df = se2**2 / ((vi / ni) ** 2 / (ni - 1) + (vj / nj) ** 2 / (nj - 1))
+        q = np.sqrt(2) * abs(t)
+        p = _st.studentized_range.sf(q, k, df)
+        rows.append({"group_i": names[i], "group_j": names[j],
+                     "diff": diff, "t": t, "df": df, "q": q, "p": p})
+    return rows
