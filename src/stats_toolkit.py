@@ -360,3 +360,20 @@ def fourier_predict(coefs, phase):
         out += coefs[2 * k - 1] * np.cos(2 * np.pi * k * phase)
         out += coefs[2 * k] * np.sin(2 * np.pi * k * phase)
     return out
+
+def partial_correlation(x, y, controls):
+    """Partial correlation of x and y controlling for the columns of `controls`.
+    Method: regress x and y on the controls (least squares), then take the
+    Pearson r of the two sets of residuals. controls: 2-D array (n, k).
+    Returns r, df = n - k - 2, t, p (two-sided)."""
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    Z = np.column_stack([np.ones(len(x)), np.asarray(controls, dtype=float)])
+    rx = x - Z @ np.linalg.lstsq(Z, x, rcond=None)[0]
+    ry = y - Z @ np.linalg.lstsq(Z, y, rcond=None)[0]
+    r = pearson_r(rx, ry)
+    k = Z.shape[1] - 1
+    df = len(x) - k - 2
+    t = r * np.sqrt(df / (1 - r**2))
+    p = 2 * _st.t.sf(abs(t), df)
+    return r, df, t, p
