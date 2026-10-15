@@ -377,3 +377,16 @@ def partial_correlation(x, y, controls):
     t = r * np.sqrt(df / (1 - r**2))
     p = 2 * _st.t.sf(abs(t), df)
     return r, df, t, p
+
+def vif(X):
+    """Variance inflation factors. X: 2-D array (n, k) of predictors, no constant.
+    For each column j, regress it on the other columns (with an intercept);
+    VIF_j = 1 / (1 - R^2_j)."""
+    X = np.asarray(X, dtype=float)
+    out = []
+    for j in range(X.shape[1]):
+        others = np.column_stack([np.ones(len(X)), np.delete(X, j, axis=1)])
+        resid = X[:, j] - others @ np.linalg.lstsq(others, X[:, j], rcond=None)[0]
+        r2 = 1 - np.sum(resid**2) / np.sum((X[:, j] - X[:, j].mean()) ** 2)
+        out.append(1 / (1 - r2))
+    return np.array(out)
