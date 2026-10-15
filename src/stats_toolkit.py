@@ -390,3 +390,35 @@ def vif(X):
         r2 = 1 - np.sum(resid**2) / np.sum((X[:, j] - X[:, j].mean()) ** 2)
         out.append(1 / (1 - r2))
     return np.array(out)
+
+def one_sample_t(x, mu0, alternative="two-sided"):
+    """One-sample t-test of H0: mean = mu0.
+    t = (xbar - mu0) / (s / sqrt(n)), df = n - 1."""
+    x = np.asarray(x, dtype=float)
+    n = len(x)
+    se = x.std(ddof=1) / np.sqrt(n)
+    t = (x.mean() - mu0) / se
+    df = n - 1
+    if alternative == "two-sided":
+        p = 2 * _st.t.sf(abs(t), df)
+    elif alternative == "greater":
+        p = _st.t.sf(t, df)
+    else:
+        p = _st.t.cdf(t, df)
+    return t, df, p
+
+
+def one_sample_z(x, mu0, alternative="two-sided"):
+    """Large-sample one-sample Z-test of H0: mean = mu0
+    (sample SD used in place of sigma).
+    z = (xbar - mu0) / (s / sqrt(n))."""
+    x = np.asarray(x, dtype=float)
+    se = x.std(ddof=1) / np.sqrt(len(x))
+    z = (x.mean() - mu0) / se
+    if alternative == "two-sided":
+        p = 2 * _st.norm.sf(abs(z))
+    elif alternative == "greater":
+        p = _st.norm.sf(z)
+    else:
+        p = _st.norm.cdf(z)
+    return z, p
