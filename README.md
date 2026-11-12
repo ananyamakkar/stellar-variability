@@ -29,8 +29,6 @@
 | `07_extensions` | Reproducible RR Lyrae sample, partial correlation, multiple regression with VIF, interaction model, one-sample t and Z tests |
 | `08_stellar_properties` | Scatter diagrams by class and a pilot of Gaia stellar parameters |
 
-## Statistical toolkit
-
 `src/stats_toolkit.py` implements, from the formulas: Pearson r (with SE, probable error and Fisher-z interval), Spearman, Kendall tau-b, least-squares lines and polynomials, one- and two-sample t, one- and two-sample Z, two-proportion Z, F-test for variances, regression F-test, one-way and two-way ANOVA, Games-Howell, chi-square (independence, goodness of fit, single variance), Fourier-series fitting, partial correlation and VIF.
 
 ## Data sources

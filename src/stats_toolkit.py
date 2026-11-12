@@ -1,9 +1,7 @@
 import numpy as np
 
-
 def pearson_r(x, y):
     """Pearson correlation coefficient, computed from the formula.
-
     r = sum((x - xbar) * (y - ybar)) / sqrt(sum((x - xbar)^2) * sum((y - ybar)^2))
     """
     x = np.asarray(x, dtype=float)
@@ -68,7 +66,6 @@ def average_ranks(x):
         i = j + 1
     return ranks
 
-
 def spearman_rho(x, y):
     """Spearman rank correlation = Pearson r of the (tie-averaged) ranks."""
     return pearson_r(average_ranks(x), average_ranks(y))
@@ -81,11 +78,9 @@ def polynomial_fit(x, y, degree):
     X = np.vander(x, degree + 1, increasing=True)
     return np.linalg.solve(X.T @ X, X.T @ y)
 
-
 def poly_predict(coefs, x):
     x = np.asarray(x, dtype=float)
     return sum(c * x**k for k, c in enumerate(coefs))
-
 
 def r_squared(y, yhat):
     """R^2 = 1 - SS_residual / SS_total."""
@@ -108,7 +103,6 @@ def kendall_tau_b(x, y):
     return s / np.sqrt((n0 - n1) * (n0 - n2))
 
 from scipy import stats as _st
-
 
 def two_sample_t(x, y, equal_var=False, alternative="two-sided"):
     """Two-sample t-test from the formulas.
@@ -303,13 +297,11 @@ def _dummies(codes):
     D[np.arange(len(codes)), codes] = 1.0
     return D[:, 1:]
 
-
 def _rss_and_rank(blocks, y):
     X = np.column_stack([np.ones(len(y))] + blocks)
     beta = np.linalg.lstsq(X, y, rcond=None)[0]
     resid = y - X @ beta
     return float(np.sum(resid ** 2)), int(np.linalg.matrix_rank(X))
-
 
 def two_way_anova(y, a, b):
     """Two-way ANOVA with interaction for unbalanced data, Type II sums of squares.
@@ -350,7 +342,6 @@ def fourier_fit(phase, y, order=3):
         cols += [np.cos(2 * np.pi * k * phase), np.sin(2 * np.pi * k * phase)]
     X = np.column_stack(cols)
     return np.linalg.solve(X.T @ X, X.T @ y)
-
 
 def fourier_predict(coefs, phase):
     phase = np.asarray(phase, dtype=float)
@@ -421,4 +412,4 @@ def one_sample_z(x, mu0, alternative="two-sided"):
         p = _st.norm.sf(z)
     else:
         p = _st.norm.cdf(z)
-    return z, p
+    return z, p 
